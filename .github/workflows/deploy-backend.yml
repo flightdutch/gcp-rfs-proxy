@@ -1,0 +1,67 @@
+name: Deploy Backend to GCP Cloud Run
+
+on:
+  push:
+    branches:
+      - backend-java
+    paths:
+      - 'Backend.java'
+      - 'Dockerfile'
+      - '.github/workflows/deploy-backend.yml'
+
+env:
+  PROJECT_ID: 'new-best-analyzer' # 👈 Вкажіть свій Project ID
+  REGION: 'europe-west3'            # 👈 Регіон розгортання
+  GAR_REPOSITORY: 'docker-repo'     # 👈 Назва Artifact Registry репозиторію
+  SERVICE_NAME: 'java-backend-api'  # 👈 Назва сервісу в Cloud Run
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    # 1. Автентифікація в GCP через традиційний JSON-ключ із Secrets
+    - name: Authenticate to Google Cloud
+      id: auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }} # 👈 Ваш секрет з GitHub
+
+    # 2. Налаштування gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    # 3. Авторизація Docker в Artifact Registry
+    - name: Configure Docker for GCP
+      run: |
+        gcloud auth configure-docker ${{ env:REGION }}-docker.pkg.dev --quiet
+
+    # 4. Збирання Docker-іміджу та тегування
+    - name: Build and Tag Docker Image
+      run: |
+        IMAGE_TAG=${{ env:REGION }}-docker.pkg.dev/${{ env:PROJECT_ID }}/${{ env:GAR_REPOSITORY }}/${{ env:SERVICE_NAME }}:${{ github.sha }}
+        docker build -t $IMAGE_TAG .
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+    # 5. Пуш іміджу в Artifact Registry
+    - name: Push Docker Image
+      run: |
+        docker push ${{ env:IMAGE_TAG }}
+
+    # 6. Деплой в Google Cloud Run
+    - name: Deploy to Cloud Run
+      uses: google-github-actions/deploy-cloudrun@v2
+      with:
+        service: ${{ env:SERVICE_NAME }}
+        region: ${{ env:REGION }}
+        image: ${{ env:IMAGE_TAG }}
+        flags: '--allow-unauthenticated --port=3000'
+
+    # 7. Виведення фінального URL додатка
+    - name: Show URL
+      run: |
+        echo "Додаток успішно розгорнуто!"
+        echo "Ендпоінт: ${{ steps:deploy.outputs.url }}/api/users"
