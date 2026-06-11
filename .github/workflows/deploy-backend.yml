@@ -64,4 +64,4 @@ jobs:
     - name: Show URL
       run: |
         echo "Додаток успішно розгорнуто!"
-        echo "Ендпоінт: ${{ steps:deploy.outputs.url }}/api/users"
+        echo "Ендпоінт: ${{ steps.deploy.outputs.url }}/api/users"
