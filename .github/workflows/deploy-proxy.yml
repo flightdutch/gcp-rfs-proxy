@@ -1,0 +1,64 @@
+name: Deploy Nginx Proxy to GCP Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'nginx.conf'
+      - 'Dockerfile.proxy'
+      - '.github/workflows/deploy-proxy.yml'
+
+env:
+  PROJECT_ID: 'new-best-analyzer' # 👈 Вкажіть свій Project ID
+  REGION: 'europe-west3'            # 👈 Регіон розгортання
+  GAR_REPOSITORY: 'proxy-repo'     # 👈 Назва Artifact Registry репозиторію
+  SERVICE_NAME: 'nginx-proxy-api'   # 👈 Назва сервісу проксі
+
+jobs:
+  deploy-proxy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker for GCP
+      run: |
+        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+    # Збираємо саме Dockerfile.proxy
+    - name: Build and Tag Proxy Image
+      run: |
+        IMAGE_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+        docker build -f Dockerfile.proxy -t $IMAGE_TAG .
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+    - name: Push Proxy Image
+      run: |
+        docker push ${{ env.IMAGE_TAG }}
+
+    - name: Deploy Proxy to Cloud Run
+      id: deploy
+      uses: google-github-actions/deploy-cloudrun@v2
+      with:
+        service: ${{ env.SERVICE_NAME }}
+        region: ${{ env.REGION }}
+        image: ${{ env.IMAGE_TAG }}
+        flags: |
+          --allow-unauthenticated
+          --port=8080
+          --service-account=developer-analyzer-runtime-sa@new-best-analyzer.iam.gserviceaccount.com
+
+    - name: Show Proxy URL
+      run: |
+        echo "Проксі успішно запущено!"
+        echo "Адреса проксі: ${{ steps.deploy.outputs.url }}"
