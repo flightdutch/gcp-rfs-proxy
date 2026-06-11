@@ -3,7 +3,7 @@ name: Deploy Nginx Proxy to GCP Cloud Run
 on:
   push:
     branches:
-      - main
+      - proxy-nginx
     paths:
       - 'nginx.conf'
       - 'Dockerfile.proxy'
