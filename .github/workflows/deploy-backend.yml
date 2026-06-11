@@ -37,27 +37,27 @@ jobs:
     # 3. Авторизація Docker в Artifact Registry
     - name: Configure Docker for GCP
       run: |
-        gcloud auth configure-docker ${{ env:REGION }}-docker.pkg.dev --quiet
+        gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
     # 4. Збирання Docker-іміджу та тегування
     - name: Build and Tag Docker Image
       run: |
-        IMAGE_TAG=${{ env:REGION }}-docker.pkg.dev/${{ env:PROJECT_ID }}/${{ env:GAR_REPOSITORY }}/${{ env:SERVICE_NAME }}:${{ github.sha }}
+        IMAGE_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
         docker build -t $IMAGE_TAG .
         echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
     # 5. Пуш іміджу в Artifact Registry
     - name: Push Docker Image
       run: |
-        docker push ${{ env:IMAGE_TAG }}
+        docker push ${{ env.IMAGE_TAG }}
 
     # 6. Деплой в Google Cloud Run
     - name: Deploy to Cloud Run
       uses: google-github-actions/deploy-cloudrun@v2
       with:
-        service: ${{ env:SERVICE_NAME }}
-        region: ${{ env:REGION }}
-        image: ${{ env:IMAGE_TAG }}
+        service: ${{ env.SERVICE_NAME }}
+        region: ${{ env.REGION }}
+        image: ${{ env.IMAGE_TAG }}
         flags: '--allow-unauthenticated --port=3000'
 
     # 7. Виведення фінального URL додатка
