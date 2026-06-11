@@ -14,7 +14,6 @@ public class Backend {
         int port = (portEnv != null) ? Integer.parseInt(portEnv) : 8080;
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-        System.out.println("=== Java додаток стартував і чекає на порту " + port + " ===");
 
         server.createContext("/api/users", new HttpHandler() {
             @Override
@@ -34,7 +33,7 @@ public class Backend {
             }
         });
 
-        System.out.println("=== Java додаток стартував і чекає на http://localhost:3000 ===");
+        System.out.println("=== Java додаток стартував і чекає на порту " + port + " ===");
         server.start();
     }
 }
