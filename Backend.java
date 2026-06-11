@@ -7,7 +7,14 @@ import java.net.InetSocketAddress;
 
 public class Backend {
     public static void main(String[] args) throws IOException {
-        HttpServer server = HttpServer.create(new InetSocketAddress(3000), 0);
+        // БУЛО: HttpServer server = HttpServer.create(new InetSocketAddress(3000), 0);
+
+        // СТАЛО: читаємо порт з оточення, якщо його немає — беремо 8080 (дефолт для Cloud Run)
+        String portEnv = System.getenv("PORT");
+        int port = (portEnv != null) ? Integer.parseInt(portEnv) : 8080;
+
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        System.out.println("=== Java додаток стартував і чекає на порту " + port + " ===");
 
         server.createContext("/api/users", new HttpHandler() {
             @Override
