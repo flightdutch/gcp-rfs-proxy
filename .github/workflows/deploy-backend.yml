@@ -12,7 +12,7 @@ on:
 env:
   PROJECT_ID: 'new-best-analyzer' # 👈 Вкажіть свій Project ID
   REGION: 'europe-west3'            # 👈 Регіон розгортання
-  GAR_REPOSITORY: 'docker-repo'     # 👈 Назва Artifact Registry репозиторію
+  GAR_REPOSITORY: 'backend-repo'     # 👈 Назва Artifact Registry репозиторію
   SERVICE_NAME: 'java-backend-api'  # 👈 Назва сервісу в Cloud Run
 
 jobs:
