@@ -1,13 +1,7 @@
 name: Deploy Nginx Proxy to GCP Cloud Run
 
 on:
-  push:
-    branches:
-      - proxy-nginx
-    paths:
-      - 'nginx.conf'
-      - 'Dockerfile.proxy'
-      - '.github/workflows/deploy-proxy.yml'
+  workflow_dispatch: # Allows manual trigger via GitHub UI, disables automatic runs
 
 env:
   PROJECT_ID: 'new-best-analyzer' # 👈 Вкажіть свій Project ID
