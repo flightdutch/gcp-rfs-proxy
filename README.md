@@ -1,5 +1,5 @@
 # gcp-rfs-proxy
-gcp - test solution: frontend -> proxy -> backend
+gcp - test solution: curl(frontend) -> Function(nginx-proxy) -> Function(backend)
 
 
 Infrastructura: How it works
@@ -43,13 +43,18 @@ Artifact Registry - config by default:
    backend-repo
    proxy-repo
 
-Storage bucket -
+Run workflows - manual:
+- Deploy Backend to GCP Cloud Run: deploy-backend.yml
+- Deploy Nginx Proxy to GCP Cloud Run: deploy-proxy.yml
+
+Infrastructura - Ready to test:
 
 Фронтенд: Тепер ви можете спокійно запускати ваш локальний Node.js-клієнт (node client.js), адресу проксі:
 https://[SERVICE_NAME]-[PROJECT_ID_HASH]-[REGION_CODE].a.run.app.
 Adress take from Action workflow log: ${{ steps.deploy.outputs.url }}
 As example:
 https://java-backend-api-3eetralyalyakkirq-ey.a.run.app
+curl https://java-backend-api-3eetralyalyakkirq-ey.a.run.app/api/users
 
 Розширення логіки: Якщо ви додасте нові ендпоінти в Java (наприклад, /api/products чи /api/auth), вам не потрібно переналаштовувати Nginx. Він автоматично проксіюватиме все, що починається з /api/.
 
